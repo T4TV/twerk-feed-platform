@@ -1,0 +1,1 @@
+import VideoFeed from '@/components/VideoFeed';\n\nexport default function Home() {\n  return (\n    <main className=\"w-full h-screen\">\n      <VideoFeed />\n    </main>\n  );\n}
