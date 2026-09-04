@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  username  String    @unique
+  password  String    // hashed with bcryptjs
+  avatar    String?
+  bio       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  videos    Video[]
+  likes     Like[]
+  comments  Comment[]
+  followers Follows[] @relation("follower")
+  following Follows[] @relation("following")
+}
+
+model Video {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  videoUrl    String
+  thumbnailUrl String?
+  duration    Int       // in seconds
+  viewCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  likes       Like[]
+  comments    Comment[]
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Like {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId   Int
+  video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  
+  @@unique([userId, videoId])
+  @@index([videoId])
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId   Int
+  video     Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@index([videoId])
+  @@index([userId])
+}
+
+model Follows {
+  id          Int       @id @default(autoincrement())
+  followerId  Int
+  follower    User      @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId Int
+  following   User      @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
